@@ -52,6 +52,7 @@ global._RocketCache = function (opts) {
         this.columns = conf.columns;
         this.dbCallBack = conf.dbCallBack;
         if (typeof  conf.redis.clients === 'undefined') {
+            conf.redis.clients = {};
             var client = redis.createClient(conf.redis.port, conf.redis.host);
             client.auth(conf.redis.pass);
             conf.redis.clients.cache = client;
