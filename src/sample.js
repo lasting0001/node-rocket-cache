@@ -2,6 +2,9 @@
  * Created by Jun.li on 2015/8/12.
  */
 "use strict";
+require('../libs/index_test');//依赖的lib
+require('node-rocket-cache');
+
 var opts = {
     sql: 'SELECT * FROM wumiao_user WHERE id <= ?;',
     dbPoolName: '5miao_game',
