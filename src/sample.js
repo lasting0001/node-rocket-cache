@@ -8,7 +8,8 @@ require('node-rocket-cache');
 var opts = {
     sql: 'SELECT * FROM wumiao_user WHERE id <= ?;',
     dbPoolName: '5miao_game',
-    columns: [10000004]
+    columns: [10000004],
+    type: 'test_api-1.0_user'
 };
 opts.dbCallBack = function (results, params) {
     var obj = {};

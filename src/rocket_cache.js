@@ -2,7 +2,7 @@
  * Created by Jun.li on 2015/8/12.
  */
 "use strict";
-// 依赖lib：config,direct_solid
+// 依赖lib：config,direct_solid,log4js
 var redis = require("redis");
 var Stash = require('node-stash');
 
@@ -40,43 +40,48 @@ global._RocketCache = function (opts) {
             this.init(extend(opts, conf));
         };
     if (typeof CONFIG_REDIS !== 'undefined') {
-        conf.redis.port = CONFIG_REDIS.redis_port;
-        conf.redis.host = CONFIG_REDIS.redis_host;
-        conf.redis.pass = CONFIG_REDIS.redis_pass;
+        conf.redis.clients = {};
+        var client1 = redis.createClient(CONFIG_REDIS.redis_port, CONFIG_REDIS.redis_host);
+        client1.auth(CONFIG_REDIS.redis_pass);
+        conf.redis.clients.cache = client1;
+        var client2 = redis.createClient(CONFIG_REDIS.redis_port, CONFIG_REDIS.redis_host);
+        client2.auth(CONFIG_REDIS.redis_pass);
+        conf.redis.clients.broadcast = client2;
     }
     if (typeof _DirectSolid === 'undefined') {
         console.error('require module direct_solid not exist!');
     }
     RocketCache.prototype.init = function (conf) {
         this.sql = conf.sql;
+        this.type = conf.type;
         this.columns = conf.columns;
+        this.dbPoolName = conf.dbPoolName;
         this.dbCallBack = conf.dbCallBack;
-        if (typeof  conf.redis.clients === 'undefined') {
-            conf.redis.clients = {};
-            var client = redis.createClient(conf.redis.port, conf.redis.host);
-            client.auth(conf.redis.pass);
-            conf.redis.clients.cache = client;
-            var client1 = redis.createClient(conf.redis.port, conf.redis.host);
-            client1.auth(conf.redis.pass);
-            conf.redis.clients.broadcast = client1;
+        if (typeof conf.type === 'undefined') {
+            _Log.error('conf.type 为空');
         }
         this.stash = Stash.createStash(redis.createClient, conf);
     };
 
-    RocketCache.prototype.get = function (type, key, callBack) {
+    RocketCache.prototype.get = function (callBack) {
         var scope = this;
         var fetch = function (done) {
             _DirectSolid(scope.sql, scope.dbCallBack, {
-                dbPoolName: '5miao_game',
+                dbPoolName: scope.dbPoolName,
                 columns: scope.columns,
                 done: done
             });
         };
         var cb = function (err, results) {
-            var backResult = (typeof  key === 'undefined' ? results : results[key]);
-            callBack(err, backResult);
+            var backResult = results;
+            //var backResult = (typeof  key === 'undefined' ? results : results[key]);
+            if (err) {
+                backResult = null;
+                _Log.errorObj('RocketCache get:', err);
+            }
+            callBack(backResult);
         };
-        this.stash.get('RocketCache:' + type + ':' + key, fetch, cb);
+        this.stash.get('RocketCache:' + scope.type, fetch, cb);
     };
     return new RocketCache(opts);
 };
