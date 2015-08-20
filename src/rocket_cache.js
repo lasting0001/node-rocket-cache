@@ -56,7 +56,7 @@ global._RocketCache = function (opts) {
         this.piece = conf.piece;//数据碎片化(根据id单条查询)
         this.columns = conf.columns;//sql列(对应语句的?)
         this.dbPoolName = conf.dbPoolName;//数据库名
-        this.fresh_time = conf.fresh_time;//数据刷新的时间
+        this.fresh_time = conf.fresh_time || '-';//数据刷新的时间
         this.dbCallBack = conf.dbCallBack;//数据库读取callBack
         this.type = 'RocketCache:' + conf.type;//数据类型
         if (!conf.piece && typeof conf.type === 'undefined') {
@@ -100,10 +100,10 @@ global._RocketCache = function (opts) {
             callBack(backResult);
         };
         var data_key = scope.type;
-        this.key_set.push(data_key);
         this.stash.get(data_key, fetch, cb);
+        this.key_set && this.key_set.push(data_key);
     };
-    RocketCache.prototype.getPiece = function (opts, key, callBack) {
+    RocketCache.prototype.getPiece = function (opts, keys, callBack) {
         if (this.piece !== true) {
             return callBack(null);
         }
@@ -111,7 +111,7 @@ global._RocketCache = function (opts) {
         var fetch = function (done) {
             _DirectSolid(opts.sql, scope.dbCallBack, {
                 dbPoolName: opts.dbPoolName,
-                columns: [key],
+                columns: keys || [],
                 done: done
             });
         };
@@ -124,8 +124,8 @@ global._RocketCache = function (opts) {
             }
             callBack(backResult);
         };
-        var data_key = 'RocketCache:' + opts.type + ':' + key;
-        this.key_set.push(data_key);
+        var data_key = 'RocketCache:' + opts.type + ':' + keys.concat('_');
+        this.key_set && this.key_set.push(data_key);
         this.stash.get(data_key, fetch, cb);
     };
     RocketCache.prototype.clearType = function (callBack) {
