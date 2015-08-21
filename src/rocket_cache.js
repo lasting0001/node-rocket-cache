@@ -107,6 +107,9 @@ global._RocketCache = function (opts) {
         if (this.piece !== true) {
             return callBack(null);
         }
+        if (!Array.isArray(keys)) {
+            keys = [keys];
+        }
         var scope = this;
         var fetch = function (done) {
             _DirectSolid(opts.sql, scope.dbCallBack, {
