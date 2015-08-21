@@ -124,7 +124,7 @@ global._RocketCache = function (opts) {
             }
             callBack(backResult);
         };
-        var data_key = 'RocketCache:' + opts.type + ':' + keys.concat('_');
+        var data_key = 'RocketCache:' + opts.type + ':' + keys.join('_');
         this.key_set && this.key_set.push(data_key);
         this.stash.get(data_key, fetch, cb);
     };
