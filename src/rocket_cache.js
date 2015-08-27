@@ -146,7 +146,7 @@ global._RocketCache = function (opts) {
     return new RocketCache(opts);
 };
 
-function LocalCachePiece(opts) {
+function RocketPieceCache(opts) {
     opts = opts || {};
     opts.piece = true;
     opts.fresh_time = opts.fresh_time || 1000 * 60 * 5;
@@ -162,4 +162,4 @@ function LocalCachePiece(opts) {
     return _RocketCache(opts);
 }
 
-global._LocalCachePiece = LocalCachePiece();
+global._RocketPieceCache = RocketPieceCache();
