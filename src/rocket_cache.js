@@ -6,10 +6,6 @@
 var redis = require("redis");
 var Stash = require('node-stash');
 
-global.ROCKET_CACHE_TYPE = function () {
-    return {}
-};
-
 global._RocketCache = function (opts) {
     var extend = function (src, dst) {
         for (var property in src) {
@@ -150,3 +146,20 @@ global._RocketCache = function (opts) {
     return new RocketCache(opts);
 };
 
+function LocalCachePiece(opts) {
+    opts = opts || {};
+    opts.piece = true;
+    opts.fresh_time = opts.fresh_time || 1000 * 60 * 5;
+    opts.dbCallBack = function (results, params) {
+        if (results && results.length > 0) {
+            params.done(null, results[0]);
+        } else {
+            _Log.errorObj('dbCallBack error,results:', results);
+            params.done('db results null or error');
+        }
+    };
+
+    return _RocketCache(opts);
+}
+
+global._LocalCachePiece = LocalCachePiece();
