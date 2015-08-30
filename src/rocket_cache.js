@@ -76,6 +76,8 @@ global._RocketCache = function (opts) {
                 scope.key_set = [];
             }, this.fresh_time);
         }
+        // 数据出生时间
+        this.birth_times = {};
     };
 
     RocketCache.prototype.getType = function (callBack) {
@@ -107,12 +109,15 @@ global._RocketCache = function (opts) {
             keys = [keys];
         }
         var scope = this;
+        var data_key = 'RocketCache:' + opts.type + ':' + keys.join('_');
         var fetch = function (done) {
             _DirectSolid(opts.sql, opts.dbCallBack || scope.dbCallBack, {
                 dbPoolName: opts.dbPoolName,
                 columns: keys || [],
                 done: done
             });
+            // 设置数据出生时间
+            opts.valid_time && (scope.birth_times[data_key] = Date.now());
         };
         var cb = function (err, results) {
             var backResult = results;
@@ -123,9 +128,16 @@ global._RocketCache = function (opts) {
             }
             callBack(backResult);
         };
-        var data_key = 'RocketCache:' + opts.type + ':' + keys.join('_');
-        this.key_set && this.key_set.push(data_key);
-        this.stash.get(data_key, fetch, cb);
+        // 数据是否已过期
+        if (opts.valid_time && (!scope.birth_times[data_key] || (scope.birth_times[data_key] + opts.valid_time < Date.now()))) {
+            this.del(data_key, function () {
+                scope.key_set && this.key_set.push(data_key);
+                scope.stash.get(data_key, fetch, cb);
+            });
+        } else {
+            this.key_set && this.key_set.push(data_key);
+            this.stash.get(data_key, fetch, cb);
+        }
     };
     RocketCache.prototype.clearType = function (callBack) {
         this.stash.del(this.type, function (err) {
@@ -137,6 +149,9 @@ global._RocketCache = function (opts) {
     };
     RocketCache.prototype.clearPiece = function (opts, keys, callBack) {
         var data_key = 'RocketCache:' + opts.type + ':' + keys.join('_');
+        this.del(data_key, callBack);
+    };
+    RocketCache.prototype.del = function (data_key, callBack) {
         this.stash.del(data_key, function (err) {
             if (err) {
                 _Log.errorObj('stash.del data_key:' + data_key + ' error:', err);
@@ -150,7 +165,7 @@ global._RocketCache = function (opts) {
 function RocketPieceCache(opts) {
     opts = opts || {};
     opts.piece = true;
-    opts.fresh_time = opts.fresh_time || 1000 * 60 * 30;
+    opts.valid_time = 1000 * 60 * 30;// 默认有效时间30分钟
     opts.dbCallBack = opts.dbCallBack || function (results, params) {
             if (results && results.length > 0) {
                 params.done(null, results);
