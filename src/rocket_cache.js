@@ -135,12 +135,13 @@ global._RocketCache = function (opts) {
             callBack();
         });
     };
-    RocketCache.prototype.clearPiece = function (type, key, callBack) {
-        this.stash.del('RocketCache:' + type + ':' + key, function (err) {
+    RocketCache.prototype.clearPiece = function (opts, keys, callBack) {
+        var data_key = 'RocketCache:' + opts.type + ':' + keys.join('_');
+        this.stash.del(data_key, function (err) {
             if (err) {
-                _Log.errorObj('stash.del error:', err);
+                _Log.errorObj('stash.del data_key:' + data_key + ' error:', err);
             }
-            callBack();
+            callBack && callBack();
         });
     };
     return new RocketCache(opts);
@@ -152,7 +153,7 @@ function RocketPieceCache(opts) {
     opts.fresh_time = opts.fresh_time || 1000 * 60 * 5;
     opts.dbCallBack = function (results, params) {
         if (results && results.length > 0) {
-            params.done(null, results[0]);
+            params.done(null, results);
         } else {
             _Log.errorObj('dbCallBack error,results:', results);
             params.done('db results null or error');
