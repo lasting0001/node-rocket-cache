@@ -17,7 +17,7 @@ global._RocketCache = function (opts) {
             redis: {
                 wait: true,
                 ttl: {
-                    cache: 600000,
+                    cache: 600000 * 3,
                     lock: 10000
                 }
             },
