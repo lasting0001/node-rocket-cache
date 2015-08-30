@@ -108,7 +108,7 @@ global._RocketCache = function (opts) {
         }
         var scope = this;
         var fetch = function (done) {
-            _DirectSolid(opts.sql, scope.dbCallBack, {
+            _DirectSolid(opts.sql, opts.dbCallBack || scope.dbCallBack, {
                 dbPoolName: opts.dbPoolName,
                 columns: keys || [],
                 done: done
@@ -150,15 +150,15 @@ global._RocketCache = function (opts) {
 function RocketPieceCache(opts) {
     opts = opts || {};
     opts.piece = true;
-    opts.fresh_time = opts.fresh_time || 1000 * 60 * 5;
-    opts.dbCallBack = function (results, params) {
-        if (results && results.length > 0) {
-            params.done(null, results);
-        } else {
-            _Log.errorObj('dbCallBack error,results:', results);
-            params.done('db results null or error');
-        }
-    };
+    opts.fresh_time = opts.fresh_time || 1000 * 60 * 30;
+    opts.dbCallBack = opts.dbCallBack || function (results, params) {
+            if (results && results.length > 0) {
+                params.done(null, results);
+            } else {
+                _Log.errorObj('dbCallBack error,results:', results);
+                params.done('db results null or error');
+            }
+        };
 
     return _RocketCache(opts);
 }
