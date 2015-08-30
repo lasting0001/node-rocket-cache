@@ -109,6 +109,7 @@ global._RocketCache = function (opts) {
             keys = [keys];
         }
         var scope = this;
+        (opts.valid_time === undefined || opts.valid_time === null) && (opts.valid_time = scope.valid_time);
         var data_key = 'RocketCache:' + opts.type + ':' + keys.join('_');
         var fetch = function (done) {
             _DirectSolid(opts.sql, opts.dbCallBack || scope.dbCallBack, {
