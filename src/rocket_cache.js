@@ -101,7 +101,7 @@ global._RocketCache = function (opts) {
         this.stash.get(data_key, fetch, cb);
         this.key_set && this.key_set.push(data_key);
     };
-    RocketCache.prototype.getPiece = function (opts, keys, callBack) {
+    RocketCache.prototype.getPiece = function (opts, keys, callBack, from_db) {
         if (this.piece !== true) {
             return callBack(null);
         }
@@ -130,7 +130,7 @@ global._RocketCache = function (opts) {
             callBack(backResult);
         };
         // 数据是否已过期
-        if (opts.valid_time && (!scope.birth_times[data_key] || (scope.birth_times[data_key] + opts.valid_time < Date.now()))) {
+        if ((from_db === true) || (opts.valid_time && (!scope.birth_times[data_key] || (scope.birth_times[data_key] + opts.valid_time < Date.now())))) {
             this.del(data_key, function () {
                 scope.key_set && this.key_set.push(data_key);
                 scope.stash.get(data_key, fetch, cb);
@@ -168,7 +168,7 @@ function RocketPieceCache(opts) {
     opts.piece = true;
     opts.valid_time = 1000 * 60 * 30;// 默认有效时间30分钟
     opts.dbCallBack = opts.dbCallBack || function (results, params) {
-            if (results && results.length > 0) {
+            if (results) {
                 params.done(null, results);
             } else {
                 _Log.errorObj('dbCallBack error,results:', results);
