@@ -168,11 +168,11 @@ function RocketPieceCache(opts) {
     opts.piece = true;
     opts.valid_time = 1000 * 60 * 30;// 默认有效时间30分钟
     opts.dbCallBack = opts.dbCallBack || function (results, params) {
-            if (results) {
+            if (results && results.length > 0) {
                 params.done(null, results);
             } else {
-                _Log.errorObj('dbCallBack error,results:', results);
-                params.done('db results null or error');
+                _Log.errorObj('dbCallBack empty or error,results:', results);
+                params.done('db results empty or error');
             }
         };
 
