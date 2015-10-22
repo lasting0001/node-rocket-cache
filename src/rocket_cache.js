@@ -39,9 +39,11 @@ global._RocketCache = function (opts) {
         conf.redis.clients = {};
         var client1 = redis.createClient(CONFIG_REDIS.redis_port, CONFIG_REDIS.redis_host);
         client1.auth(CONFIG_REDIS.redis_pass);
+        client1.select(15);
         conf.redis.clients.cache = client1;
         var client2 = redis.createClient(CONFIG_REDIS.redis_port, CONFIG_REDIS.redis_host);
         client2.auth(CONFIG_REDIS.redis_pass);
+        client2.select(15);
         conf.redis.clients.broadcast = client2;
     }
     if (typeof _DirectSolid === 'undefined') {
